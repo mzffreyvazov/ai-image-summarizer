@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Text Summarizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .upload-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .drop-zone {
+            border: 2px dashed #4CAF50;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f8f8;
+        }
+
+        .drop-zone.dragover {
+            background-color: #e8f5e9;
+            border-color: #2E7D32;
+        }
+
+        .drop-zone p {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .browse-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .browse-button:hover {
+            background-color: #45a049;
+        }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .preview-item {
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .remove-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .submit-button {
+            background-color: #2196F3;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #1976D2;
+        }
+
+        .submit-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        /* Markdown Styles */
+        .markdown-content {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+
+        .markdown-content h1 { font-size: 1.8em; }
+        .markdown-content h2 { font-size: 1.5em; }
+        .markdown-content h3 { font-size: 1.3em; }
+        .markdown-content h4 { font-size: 1.1em; }
+
+        .markdown-content p {
+            margin-bottom: 1em;
+        }
+
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+
+        .markdown-content li {
+            margin-bottom: 0.5em;
+        }
+
+        .markdown-content code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .markdown-content pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+
+        .markdown-content blockquote {
+            border-left: 4px solid #dfe2e5;
+            padding-left: 1em;
+            color: #6a737d;
+            margin-bottom: 1em;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .loading::after {
+            content: "Processing...";
+            animation: dots 12s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: "Yəni tək siqaret öldürmür."; }
+            40% { content: "Hər şey öldürür.."; }
+            60% { content: "Elə yaşamaq da baş ağrıdır..."; }
+            70% { content: "Daş hasarlar aşanacan...."; }
+            80%, 100% { content: "Qaçacaqsan....."; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>AI Image Text Summarizer</h1>
+    <div class="upload-container">
+        <div class="drop-zone" id="dropZone">
+            <p>Gonder gorek sekilleri !!</p>
+            <button class="browse-button" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+            <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
+        </div>
+        <div class="preview-container" id="previewContainer"></div>
+        <button class="submit-button" id="submitButton" disabled>Summarize Images</button>
+        <div class="loading" id="loading"></div>
+    </div>
+    <div class="result-container" id="resultContainer">
+        <div class="markdown-content" id="markdownContent"></div>
+    </div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const submitButton = document.getElementById('submitButton');
+    const loadingIndicator = document.getElementById('loading');
+    const resultContainer = document.getElementById('resultContainer');
+    const markdownContent = document.getElementById('markdownContent');
+
+    let files = [];
+
+    // Configure marked options
+    marked.setOptions({
+        breaks: true,
+        gfm: true
+    });
+
+    // Drag and drop handlers
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const droppedFiles = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+        handleFiles(droppedFiles);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const selectedFiles = Array.from(e.target.files);
+        handleFiles(selectedFiles);
+    });
+
+    function handleFiles(newFiles) {
+        files = [...files, ...newFiles];
+        updatePreview();
+        updateSubmitButton();
+    }
+
+    function updatePreview() {
+        previewContainer.innerHTML = '';
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button class="remove-button" onclick="removeFile(${index})">×</button>
+                    `;
+                previewContainer.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function removeFile(index) {
+        files.splice(index, 1);
+        updatePreview();
+        updateSubmitButton();
+    }
+
+    function updateSubmitButton() {
+        submitButton.disabled = files.length === 0;
+    }
+
+    function findSummarySection(text) {
+        const summaryIndex = text.indexOf("**Summary:**");
+        if (summaryIndex !== -1) {
+            return text.substring(summaryIndex);
+        }
+        return text;
+    }
+
+    submitButton.addEventListener('click', async () => {
+        if (files.length === 0) return;
+
+        loadingIndicator.style.display = 'block';
+        submitButton.disabled = true;
+        resultContainer.style.display = 'none';
+
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('file', file);
+        });
+
+        try {
+            const response = await fetch('/api/summarizeImages', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.text();
+            const summaryText = findSummarySection(result);
+            markdownContent.innerHTML = marked.parse(summaryText);
+            resultContainer.style.display = 'block';
+        } catch (error) {
+            console.error('Error:', error);
+            markdownContent.innerHTML = marked.parse('### Error\nError processing images. Please try again.');
+            resultContainer.style.display = 'block';
+        } finally {
+            loadingIndicator.style.display = 'none';
+            submitButton.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
