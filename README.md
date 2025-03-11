@@ -96,10 +96,6 @@ Modify the path in `OcrController.java` if your Tesseract installation is in a d
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Acknowledgments
 
 - [Spring AI](https://docs.spring.io/spring-ai/reference/index.html) for AI integration
