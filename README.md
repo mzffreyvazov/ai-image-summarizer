@@ -2,6 +2,10 @@
 
 A Spring Boot application that extracts text from images using OCR (Optical Character Recognition) and provides AI-powered summaries using Google's Vertex AI Gemini model.
 
+## Demo
+
+https://github.com/user-attachments/assets/28a17aa7-fae8-468a-b273-c17b182f369a
+
 ## Features
 
 - Upload multiple images via drag-and-drop or file browser
